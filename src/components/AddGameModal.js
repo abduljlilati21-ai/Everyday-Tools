@@ -54,9 +54,12 @@ export default function AddGameModal({ isOpen, onClose, onAddGame }) {
     let finalIframe = iframeInput.trim();
     let url = "";
 
-    // Validate against ad tracker frames, Prebid beacons, or blank about:blank frames
+    // Validate against ad tracker frames, reCAPTCHA bots, Prebid beacons, or blank about:blank frames
     const lowerIframe = finalIframe.toLowerCase();
     if (
+      lowerIframe.includes("recaptcha") ||
+      lowerIframe.includes("aframe") ||
+      lowerIframe.includes("data-pz-scrubbed") ||
       lowerIframe.includes("__pb_locator__") ||
       lowerIframe.includes("about:blank") ||
       lowerIframe.includes("doubleclick.net") ||
@@ -64,11 +67,18 @@ export default function AddGameModal({ isOpen, onClose, onAddGame }) {
       lowerIframe.includes("partnerpixels") ||
       (lowerIframe.includes('width="0"') && lowerIframe.includes('height="0"')) ||
       (lowerIframe.includes("width='0'") && lowerIframe.includes("height='0'")) ||
-      lowerIframe.includes("display: none")
+      lowerIframe.includes("display: none") ||
+      lowerIframe.includes("visibility: hidden")
     ) {
-      setError(
-        "Detected an advertising/tracking beacon iframe (__pb_locator__, DoubleClick, or 0x0 blank frame). This is an ad tag rather than a playable game. Please copy the actual game frame or enter the game's direct URL."
-      );
+      if (lowerIframe.includes("recaptcha") || lowerIframe.includes("aframe")) {
+        setError(
+          "Detected a Google reCAPTCHA anti-bot verification iframe (recaptcha/api2/aframe). This is an invisible security check, not a playable game. Please inspect the main game viewport or enter the game's direct URL."
+        );
+      } else {
+        setError(
+          "Detected an advertising/tracking beacon iframe (__pb_locator__, DoubleClick, or 0x0 blank frame). This is an ad tag rather than a playable game. Please copy the actual game frame or enter the game's direct URL."
+        );
+      }
       return;
     }
 

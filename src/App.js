@@ -29,6 +29,9 @@ const isAdTracker = (g) => {
   if (!g) return true;
   const combined = `${g.url || ""} ${g.iframe || ""} ${g.title || ""}`.toLowerCase();
   return (
+    combined.includes("recaptcha") ||
+    combined.includes("aframe") ||
+    combined.includes("data-pz-scrubbed") ||
     combined.includes("__pb_locator__") ||
     combined.includes("doubleclick.net") ||
     combined.includes("goog_plcm") ||
@@ -36,7 +39,8 @@ const isAdTracker = (g) => {
     combined.includes("about:blank") ||
     combined.includes('width="0"') ||
     combined.includes("width='0'") ||
-    combined.includes("display: none")
+    combined.includes("display: none") ||
+    combined.includes("visibility: hidden")
   );
 };
 

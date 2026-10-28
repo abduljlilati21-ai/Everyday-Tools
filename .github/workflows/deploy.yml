@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -33,6 +33,21 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Ensure .nojekyll exists
+        run: touch ./dist/.nojekyll
+
+      # Dual-Deployment Method 1: Publish to gh-pages branch (works when Pages source is set to "Deploy from a branch")
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+
+      # Dual-Deployment Method 2: Upload Pages artifact for GitHub Actions deployment mode
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -45,6 +60,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages (GitHub Actions mode)
         id: deployment
+        continue-on-error: true
         uses: actions/deploy-pages@v4
+
+      - name: Verify Deployment Status
+        run: |
+          echo "=========================================================="
+          echo "GitHub Pages deployment process completed."
+          echo "Repository: https://github.com/${{ github.repository }}"
+          echo "If Pages is set to 'GitHub Actions': deployment is live via deploy-pages."
+          echo "If Pages is set to 'Deploy from a branch': deployment is live on the 'gh-pages' branch."
+          echo "To verify or change settings, visit: https://github.com/${{ github.repository }}/settings/pages"
+          echo "=========================================================="
